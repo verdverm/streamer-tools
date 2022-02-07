@@ -2,11 +2,14 @@
 // and does things, hopefully
 package chat
 
-import "strings"
+import (
+  "strings"
+
+  "github.com/verdverm/streamer-tools/flows/twitch/chat/handlers"
+)
 
 listen: {
   @flow()
-
   cfg: meta
 
   bot: cfg.irc & {
@@ -14,6 +17,7 @@ listen: {
     handler: IRCHandler
   }
 }
+
 
 // Handler per IRC message
 IRCHandler: {
@@ -23,7 +27,7 @@ IRCHandler: {
   // output (oneof), first taken anyhow
   error?: _
   resp?: _
-  pipe?: _
+  flow?: _
 
   // below here is...
   // the decision making process on messages
@@ -34,11 +38,14 @@ IRCHandler: {
     cmd: parts[0]
 
     switch: [
+      // basic handlers
       if respHandlers[cmd] != _|_ {
         resp: respHandlers[cmd]
       }
-      if pipeHandlers[cmd] != _|_ {
-        pipe: pipeHandlers[cmd] & { args: parts }
+
+      // flow handlers
+      if handlers.FlowHandlers[cmd] != _|_ {
+        flow: handlers.FlowHandlers[cmd] & { args: parts }
       }
 
       { error: "unknown cmd: " + cmd },

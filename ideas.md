@@ -18,6 +18,7 @@ Additional examples:
 - auth / oauth
     - [ ] twitter
     - [x] youtube (apikey)
+    - [ ] automate get/refresh with playwright https://github.com/microsoft/playwright)
 - [ ] api calls
     - [ ] twitter
     - [ ] youtube
