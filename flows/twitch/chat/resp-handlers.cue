@@ -21,7 +21,9 @@ respHandlers: {
   "!neoverm":  links.neoverm
   "!dox":      "google 'verdverm'"
 
+  "!cue":      "https://cuelang.org | https://cuetorials.com"
+
   "!grasshopper": links.grasshopper 
   "!learn/code": "Try out the Grasshopper App \(links.grasshopper)"
-  "!learn/go": "Checkout my currated links: https://verdverm.com/resources/learning-go"
+  "!learn/go": "Checkout my curated links: https://verdverm.com/resources/learning-go"
 }
