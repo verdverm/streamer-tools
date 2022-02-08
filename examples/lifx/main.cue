@@ -14,6 +14,20 @@ flags: {
   brightness: string | *"0.69" @tag(b)
 }
 
+Color: {
+  if flags.color != "" {
+    color: flags.color
+    brightness: strconv.ParseFloat(flags.brightness, 64)
+  }
+  if flags.color == "" {
+    color: {
+      hue: strconv.Atoi(flags.hue)
+      saturation: strconv.ParseFloat(flags.saturation, 64)
+      brightness: strconv.ParseFloat(flags.brightness, 64)
+    }
+  }
+}
+
 secrets: {
   // @flow(init)
   env: LIFX_ACCESS_TOKEN: _ @task(os.Getenv,secret)
@@ -66,19 +80,8 @@ set: {
   do: lifx.SetLights & {
     apikey: shh.apikey
     data: {
+      Color
       power: "on"
-      if flags.color != "" {
-        color: flags.color
-        brightness: strconv.ParseFloat(flags.brightness, 64)
-      }
-      if flags.color == "" {
-        color: {
-          hue: strconv.Atoi(flags.hue)
-          saturation: strconv.ParseFloat(flags.saturation, 64)
-          brightness: strconv.ParseFloat(flags.brightness, 64)
-        }
-      }
-
     }
   }
 
@@ -89,11 +92,11 @@ pulse: {
   @flow(pulse) 
   shh: secrets
 
-  do: lifx.EffectsLights & {
+  do: lifx.EffectLights & {
     apikey: shh.apikey
     effect: "pulse"
     data: {
-      color: flags.color
+      Color
       period: 1.0
       cycles: 6.0
     }
