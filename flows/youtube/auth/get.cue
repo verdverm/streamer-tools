@@ -1,9 +1,5 @@
 package auth
 
-import (
-  "encoding/json"
-)
-
 // This flow will run the OAuth workflow
 // go get a new token for the Youtube Data API
 GetToken: {
@@ -64,11 +60,6 @@ GetToken: {
             }
             resp: string
           }
-
-          respOut: {
-            @task(os.Stdout)
-            text: json.Indent(json.Marshal(get_token.resp) + "\n", "", "  ")
-          } 
 
           write_token: {
             @task(os.WriteFile)

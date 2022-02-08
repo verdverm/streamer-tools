@@ -50,7 +50,7 @@ SetLights: PutLights & {
   lights: resp
 }
 
-EffectsLights: PostLights & {
+EffectLights: PostLights & {
   effect: string  // todo, disjunction of allowed strings
   path: "/effects/\(effect)"
   resp: _
