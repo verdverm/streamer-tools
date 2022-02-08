@@ -2,21 +2,26 @@ package handlers
 
 import (
   "encoding/json"
-  // "strings"
+  "strconv"
+
+  "github.com/verdverm/streamer-tools/flows/lifx"
 )
+
+secrets: {
+  // @flow(init)
+  env: LIFX_ACCESS_TOKEN: _ @task(os.Getenv,secret)
+  apikey: env.LIFX_ACCESS_TOKEN
+}
 
 FlowHandlers: {
   "!color": {
     @flow()
+    shh: secrets
 
     args?: [...string]
 
-    secrets: {
-      env: LIFX_ACCESS_TOKEN: _ @task(os.Getenv)
-      apikey: env.LIFX_ACCESS_TOKEN
-    }
-    set: SetLights & { 
-      resp: string
+    do: lifx.SetLights & {
+      apikey: shh.apikey
       if len(args) == 2 {
         data: {
           power: "on"
@@ -24,98 +29,74 @@ FlowHandlers: {
           brightness: 0.8
         }
       }
+      if len(args) == 4 {
+        data: {
+          power: "on"
+          color: {
+            hue: strconv.Atoi(args[1])
+            saturation: strconv.ParseFloat(args[2], 64)
+            brightness: strconv.ParseFloat(args[3], 64)
+          }
+        }
+      }
     }
 
+    print: { text: json.Indent(json.Marshal(do.lights), "", "  ") } @task(os.Stdout)
     resp: ""
-
-    dummy: set.lights 
-
-    print: { text: json.Indent(json.Marshal(dummy), "", "  ") } @task(os.Stdout)
-    
   }
 }
 
+UserEventHandlers: {
+  Join: {
+    @flow()
+    shh: secrets
 
-GetLights: {
-  secrets: {
-    env: LIFX_ACCESS_TOKEN: _ @task(os.Getenv)
-    apikey: env.LIFX_ACCESS_TOKEN
-  }
-  call: {
-    @task(api.Call)
-    req: {
-      host: "https://api.lifx.com/v1"
-      path: "/lights/all"
-      headers: {
-        Authorization: "Bearer \(secrets.apikey)"
+    args?: [...string]
+
+    do: lifx.EffectLights & {
+      effect: "breathe"
+      apikey: shh.apikey
+      data: {
+        power: "on"
+        color: colors.white
+        period: 0.5
+        cycles: 3
       }
     }
-  }
-  lights: call.resp
-}
 
-ToggleLights: {
-  secrets: {
-    env: LIFX_ACCESS_TOKEN: _ @task(os.Getenv)
-    apikey: env.LIFX_ACCESS_TOKEN
+    print: { text: json.Indent(json.Marshal(do.lights), "", "  ") } @task(os.Stdout)
+    resp: ""
   }
-  call: {
-    @task(api.Call)
-    req: {
-      host: "https://api.lifx.com/v1"
-      path: "/lights/all/toggle"
-      method: "POST"
-      headers: {
-        Authorization: "Bearer \(secrets.apikey)"
+  Part: {
+    @flow()
+    shh: secrets
+
+    args?: [...string]
+
+    do: lifx.EffectLights & {
+      effect: "breathe"
+      apikey: shh.apikey
+      data: {
+        power: "on"
+        color: colors.red
+        period: 0.5
+        cycles: 3
       }
     }
+
+    print: { text: json.Indent(json.Marshal(do.lights), "", "  ") } @task(os.Stdout)
+    resp: ""
   }
-  lights: call.resp
 }
 
-SetLights: {
-  data: _
-  secrets: {
-    env: LIFX_ACCESS_TOKEN: _ @task(os.Getenv)
-    apikey: env.LIFX_ACCESS_TOKEN
+colors: {
+  def: {
+    saturation: number | *1.0 
+    brightness: number | *0.69 
   }
-  call: {
-    @task(api.Call)
-    req: {
-      host: "https://api.lifx.com/v1"
-      path: "/lights/all/state"
-      method: "PUT"
-      headers: {
-        Authorization: "Bearer \(secrets.apikey)"
-        "Content-Type": "application/json"
-      }
-      "data": data
 
-    }
-  }
-  lights: call.resp
+  white: def & { hue: 0, saturation: 0.0 }
+  red: def & { hue: 360 }
+  blue: def & { hue: 240 }
+  green: def & { hue: 120 }
 }
-
-PulseLights: {
-  data: _
-  secrets: {
-    env: LIFX_ACCESS_TOKEN: _ @task(os.Getenv)
-    apikey: env.LIFX_ACCESS_TOKEN
-  }
-  call: {
-    @task(api.Call)
-    req: {
-      host: "https://api.lifx.com/v1"
-      path: "/lights/all/effects/pulse"
-      method: "POST"
-      headers: {
-        Authorization: "Bearer \(secrets.apikey)"
-        "Content-Type": "application/json"
-      }
-      "data": data
-
-    }
-  }
-  lights: call.resp
-}
-

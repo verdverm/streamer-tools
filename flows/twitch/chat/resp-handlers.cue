@@ -22,6 +22,7 @@ respHandlers: {
   "!dox":      "google 'verdverm'"
 
   "!cue":      "https://cuelang.org | https://cuetorials.com"
+  "!vh":       "https://vaulthunters.gg"
 
   "!grasshopper": links.grasshopper 
   "!learn/code": "Try out the Grasshopper App \(links.grasshopper)"

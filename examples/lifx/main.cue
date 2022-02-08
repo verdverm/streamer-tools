@@ -3,69 +3,90 @@ package lifx
 import (
   "encoding/json"
 
-  "github.com/verdverm/streamer-tools/flows/twitch/chat/handlers"
+  "github.com/verdverm/streamer-tools/flows/lifx"
 )
 
 flags: {
-  color: string @tag(color)
+  color: string @tag(c)
+  hue: string @tag(h)
+  saturation: string @tag(s)
+  brightness: string @tag(b)
 }
 
-do: {
+secrets: {
+  // @flow(init)
+  env: LIFX_ACCESS_TOKEN: _ @task(os.Getenv,secret)
+  apikey: env.LIFX_ACCESS_TOKEN
+}
+
+clear: {
+  @flow(clear)
+  shh: secrets
+  do: lifx.ClearLights & {
+    apikey: shh.apikey
+  }
+  print: { text: json.Indent(json.Marshal(do.lights), "", "  ") } @task(os.Stdout)
+}
+
+get: {
   @flow(get)
-  get: handlers.GetLights
-
-  lights: get.lights
-
-  print: { text: json.Indent(json.Marshal(lights), "", "  ") } @task(os.Stdout)
-
+  shh: secrets
+  do: lifx.GetLights & { apikey: shh.apikey }
+  print: { text: json.Indent(json.Marshal(do.lights), "", "  ") } @task(os.Stdout)
 }
 
-don: {
+off: {
+  @flow(off)
+  shh: secrets
+
+  do: lifx.SetLights & {
+    apikey: shh.apikey
+    data: power: "off"
+  }
+
+  print: { text: json.Indent(json.Marshal(do.lights), "", "  ") } @task(os.Stdout)
+}
+
+toggle: {
   @flow(toggle)
-  call: handlers.ToggleLights
+  shh: secrets
 
-  lights: call.lights
+  do: lifx.ToggleLights & { 
+    apikey: shh.apikey
+  }
 
-  print: { text: json.Indent(json.Marshal(lights), "", "  ") } @task(os.Stdout)
-
+  print: { text: json.Indent(json.Marshal(do.lights), "", "  ") } @task(os.Stdout)
 }
 
-dont: {
+set: {
   @flow(set)
+  shh: secrets
 
-  cfg: {
-    power: "on"
-    color: flags.color
-    brightness: 0.8
+  do: lifx.SetLights & {
+    apikey: shh.apikey
+    data: {
+      power: "on"
+      color: flags.color
+      brightness: 0.8
+    }
   }
 
-  debug: { text: json.Indent(json.Marshal(cfg), "", "  ") } @task(os.Stdout)
-
-  set: handlers.SetLights & {
-    data: cfg 
-  }
-
-  lights: set.lights
-
-  print: { text: json.Indent(json.Marshal(lights), "", "  ") } @task(os.Stdout)
-
+  print: { text: json.Indent(json.Marshal(do.lights), "", "  ") } @task(os.Stdout)
 }
 
 pulse: {
-  @flow(pulse)
-  
-  cfg: {
-    color: flags.color
-    period: 1.0
-    cycles: 6.0
+  @flow(pulse) 
+  shh: secrets
+
+  do: lifx.EffectsLights & {
+    apikey: shh.apikey
+    effect: "pulse"
+    data: {
+      color: flags.color
+      period: 1.0
+      cycles: 6.0
+    }
   }
 
-  set: handlers.PulseLights & {
-    data: cfg 
-  }
-
-  lights: set.lights
-
-  print: { text: json.Indent(json.Marshal(lights), "", "  ") } @task(os.Stdout)
-
+  print: { text: json.Indent(json.Marshal(do.lights), "", "  ") } @task(os.Stdout)
 }

@@ -57,4 +57,11 @@ IRCHandler: {
   if msg.Command == "USEREVENT" {
 
   }
+
+  if msg.Command == "JOIN" {
+    flow: handlers.UserHandlers.Join
+  }
+  if msg.Command == "PART" {
+    flow: handlers.UserHandlers.Part
+  }
 }
