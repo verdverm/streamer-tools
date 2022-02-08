@@ -26,7 +26,14 @@ FlowHandlers: {
         data: {
           power: "on"
           color: "\(args[1])"
-          brightness: 0.8
+          brightness: 0.69
+        }
+      }
+      if len(args) == 3 {
+        data: {
+          power: "on"
+          color: "\(args[1])"
+          brightness: strconv.ParseFloat(args[2], 64)
         }
       }
       if len(args) == 4 {
@@ -57,11 +64,11 @@ UserEventHandlers: {
       effect: "breathe"
       apikey: shh.apikey
       data: {
-        power: "on"
-        color: colors.white
+        color: colors.green
         period: 0.5
         cycles: 3
       }
+      lights: _
     }
 
     print: { text: json.Indent(json.Marshal(do.lights), "", "  ") } @task(os.Stdout)
@@ -77,11 +84,11 @@ UserEventHandlers: {
       effect: "breathe"
       apikey: shh.apikey
       data: {
-        power: "on"
         color: colors.red
         period: 0.5
         cycles: 3
       }
+      lights: _
     }
 
     print: { text: json.Indent(json.Marshal(do.lights), "", "  ") } @task(os.Stdout)
