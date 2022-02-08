@@ -14,6 +14,7 @@ CallAPI: {
     "path": "/lights/\(selector)\(path)"
     headers: {
       Authorization: "Bearer \(apikey)"
+      "Content-Type": "application/json"
     }
     "data": data
   }
@@ -22,6 +23,7 @@ CallAPI: {
 
 PostLights: CallAPI & { req: method: "POST" }
 PutLights: CallAPI & { req: method: "PUT" }
+
 GetLights: CallAPI & {
   req: method: "GET"
   path: ""

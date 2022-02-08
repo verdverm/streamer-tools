@@ -2,15 +2,16 @@ package lifx
 
 import (
   "encoding/json"
+  "strconv"
 
   "github.com/verdverm/streamer-tools/flows/lifx"
 )
 
 flags: {
-  color: string @tag(c)
-  hue: string @tag(h)
-  saturation: string @tag(s)
-  brightness: string @tag(b)
+  color:      string | *""     @tag(c)
+  hue:        string | *"240"  @tag(h)
+  saturation: string | *"1.0"  @tag(s)
+  brightness: string | *"0.69" @tag(b)
 }
 
 secrets: {
@@ -66,8 +67,18 @@ set: {
     apikey: shh.apikey
     data: {
       power: "on"
-      color: flags.color
-      brightness: 0.8
+      if flags.color != "" {
+        color: flags.color
+        brightness: strconv.ParseFloat(flags.brightness, 64)
+      }
+      if flags.color == "" {
+        color: {
+          hue: strconv.Atoi(flags.hue)
+          saturation: strconv.ParseFloat(flags.saturation, 64)
+          brightness: strconv.ParseFloat(flags.brightness, 64)
+        }
+      }
+
     }
   }
 
