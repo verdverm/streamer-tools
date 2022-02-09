@@ -5,7 +5,7 @@ import (
   "encoding/json"
   "strings"
 
-  "github.com/verdverm/streamer-tools/utils"
+  "github.com/verdverm/streamer-tools/flows/utils"
 )
 
 // This flow will load a saved token
@@ -81,22 +81,36 @@ get_token: {
   cfg: meta
 
   prompt: {
-    @task(os.Stdout)
+    // if no TTY
+    // @task(os.Stdout)
     text: """
     please open the following link in your browser
 
     \(cfg.twitch_cfg.code_url)
 
     you can ctrl-c this script after authorizing twitch
+    //
     """
+
+    @task(os.Exec)
+    cmd: ["garcon-url-handler", cfg.twitch_cfg.code_url]
+    // cmd: ["xdg-open", cfg.twitch_cfg.code_url]
   }
+
+  chanName: "server-quit"
 
   server: {
     @flow(server,auth/get)
 
+    quit: { name: chanName, buf: 3 } @task(csp.Chan)
+
     run: {
       @task(api.Serve)
+      dep: quit.done
+      quitMailbox: chanName 
+
       port: "2323"
+      logging: true
       routes: {
         "/callback": {
           @flow()
@@ -107,7 +121,7 @@ get_token: {
             html: """
             <html><body>
             <h1 style="margin-top:32px">
-              OAuth token saved
+              stream-tools: Twitch OAuth token saved
             </h1>
             </body></html>
             """
@@ -139,6 +153,9 @@ get_token: {
             contents: get_token.resp
             mode: 0o666
           }
+
+          // stop server
+          stop_server: { dep: write_token.done, name: chanName, val: true } @task(csp.Send)
         }
       }
     }
