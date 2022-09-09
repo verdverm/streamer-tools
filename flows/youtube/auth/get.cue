@@ -37,6 +37,9 @@ GetToken: {
             </body></html>
             """
           }
+
+          // debug: { text: "DEBUG(code): \(code)\n" } @task(os.Stdout)
+
           // write auth code to file
           write_code: {
             @task(os.WriteFile)

@@ -11,25 +11,32 @@ vars: {
   user: string | *"dr_verm" @tag(user)
 }
 
-meta: {
-  @flow(meta)
-  secrets: {
-    env: { 
-      TWITCH_CLIENT_ID: _ @task(os.Getenv)
-    } 
-    cid: env.TWITCH_CLIENT_ID
+secrets: {
+  env: { 
+    TWITCH_CLIENT_ID: _ @task(os.Getenv)
+  } 
+  cid: env.TWITCH_CLIENT_ID
 
-    tLoad: auth.load
-    token: tLoad.token
-  }
+  tLoad: auth.load
+  token: tLoad.token
+}
 
-  twitch_req: {
+CallAPI: {
+  @task(api.Call)
+  secrets: _
+  query?: _
+  path: string
+
+  req: cfg.twitch_req & {
     host: "https://api.twitch.tv"
-    method: string | *"GET"
     headers: {
       "Client-ID": secrets.cid
       "Authorization": "Bearer \(secrets.token)"
     }
+    "path": path
+    "query": query
   }
-
+  resp: _
 }
+
+GetAPI: { method: "GET" }

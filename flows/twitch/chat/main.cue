@@ -3,65 +3,80 @@
 package chat
 
 import (
-  "strings"
+	"list"
+	"strings"
 
-  "github.com/verdverm/streamer-tools/flows/twitch/chat/handlers"
+	"github.com/verdverm/streamer-tools/flows/twitch/chat/handlers"
 )
 
 listen: {
-  @flow()
-  cfg: meta
+	@flow()
+	cfg: meta
 
-  bot: cfg.irc & {
-    @task(msg.IrcClient)
-    handler: IRCHandler
-  }
+	bot: cfg.irc & {
+		@task(msg.IrcClient)
+		handler: IRCHandler
+	}
 }
 
 
 // Handler per IRC message
 IRCHandler: {
-  // input
-  msg: _
+	// input
+	msg: _
 
-  // output (oneof), first taken anyhow
-  error?: _
-  resp?: _
-  flow?: _
+	// output (oneof), first taken anyhow
+	error?: _
+	resp?: _
+	flow?: _
 
-  // below here is...
-  // the decision making process on messages
+	_menu: [
+		for k,_ in respHandlers { k }
+		for k,_ in handlers.FlowHandlers { k }
+	]
 
-  if msg.Command == "PRIVMSG" {
-    msg_cmd: msg.Params[1]
-    parts: strings.Split(msg_cmd, " ")
-    cmd: parts[0]
+	// below here is...
+	// the decision making process on messages
 
-    switch: [
-      // basic handlers
-      if respHandlers[cmd] != _|_ {
-        resp: respHandlers[cmd]
-      }
+	if msg.Command == "PRIVMSG" {
+		msg_cmd: msg.Params[1]
+		parts: strings.Split(msg_cmd, " ")
+		cmd: parts[0]
 
-      // flow handlers
-      if handlers.FlowHandlers[cmd] != _|_ {
-        flow: handlers.FlowHandlers[cmd] & { args: parts }
-      }
+		switch: [
 
-      { error: "unknown cmd: " + cmd },
-    ] 
+			if cmd == "!menu" || cmd == "!help" {
+				resp: strings.Join(list.Sort(_menu, list.Ascending), " ")
+			}
+			// basic handlers
+			if respHandlers[cmd] != _|_ {
+				resp: respHandlers[cmd]
+			}
 
-    switch[0]
-  }
+			// flow handlers
+			if handlers.FlowHandlers[cmd] != _|_ {
+				flow: handlers.FlowHandlers[cmd] & { args: parts }
+			}
 
-  if msg.Command == "USEREVENT" {
+			// easter eggs
+			if eggHandlers[cmd] != _|_ {
+				resp: eggHandlers[cmd]
+			}
 
-  }
+			{ error: "unknown cmd: " + cmd },
+		] 
 
-  if msg.Command == "JOIN" {
-    flow: handlers.UserEventHandlers.Join
-  }
-  if msg.Command == "PART" {
-    flow: handlers.UserEventHandlers.Part
-  }
+		switch[0]
+	}
+
+	if msg.Command == "USEREVENT" {
+
+	}
+
+	if msg.Command == "JOIN" {
+		flow: handlers.UserEventHandlers.Join
+	}
+	if msg.Command == "PART" {
+		flow: handlers.UserEventHandlers.Part
+	}
 }

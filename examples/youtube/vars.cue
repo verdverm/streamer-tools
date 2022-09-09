@@ -35,5 +35,6 @@ debug: {
 secrets: {
   loaded: auth.LoadToken
   token: loaded.token
+  // token: auth.LoadToken.token
 }
 

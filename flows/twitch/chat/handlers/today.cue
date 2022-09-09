@@ -11,6 +11,7 @@ FlowHandlers: {
       @task(os.Exec)
       cmd: ["date"]
       stdout: string  
+      @print()
     }
 
     resp: strings.Replace(get.stdout, "\n", "", -1)

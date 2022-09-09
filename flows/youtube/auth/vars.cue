@@ -18,7 +18,11 @@ meta: {
 
   secrets: {
     oauth: { 
-      text: { filename: vars.oauth_fn } @task(os.ReadFile)
+      text: { 
+        @task(os.ReadFile)
+        filename: vars.oauth_fn
+        contents: string
+      } 
       "json": json.Unmarshal(text.contents)
     } 
     cid: oauth.json.client_id 

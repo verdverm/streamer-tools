@@ -5,6 +5,7 @@ import (
 
   "github.com/verdverm/streamer-tools/examples/youtube/data"
   "github.com/verdverm/streamer-tools/flows/youtube/info"
+  "github.com/verdverm/streamer-tools/flows/youtube/set"
 )
 
 DraftList: {
@@ -72,3 +73,51 @@ DraftFetchAllDetails: {
 
   print: { text: "\"videos\": " + json.Indent(json.Marshal(filtered), "", "  ") } @task(os.Stdout)
 }
+
+DraftGenPostData: {
+  @flow(drafts/update/video)
+
+  shhh: secrets
+
+  upsertDrafts: data.Drafts
+
+  draftID: *0 | uint @tag(d)
+  // read details
+  read: {
+    @task(os.ReadFile)
+    filename: "tmp/details.json"
+    contents: {}
+  }
+
+  // organize original datas
+  youtubeData: read.contents
+  origData: youtubeData.videos["\(draftID)"]
+  origSnippet: origData.snippet
+  origTitle: origSnippet.title
+  upsertData: upsertDrafts[origTitle]
+
+  // call API
+  call: set.Video & {
+    token: shhh.token
+    // custom parts to update
+    req: query: part: "id,snippet,recordingDetails"
+    // video metadata update payload
+    req: data: { 
+      id: origData.id
+      snippet: {
+        categoryId: origSnippet.categoryId
+        title: upsertData.title
+        description: upsertData.description
+        tags: upsertData.tags
+      }
+      recordingData: recordingDate: upsertData.relData
+    }
+    resp: {}
+  }
+
+  // debug
+  djson: call.video 
+  dtext: json.Indent(json.Marshal(djson), "", "  ") + "\n\n"
+  debug: { text: dtext } @task(os.Stdout)
+}
+

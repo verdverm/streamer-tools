@@ -9,9 +9,9 @@ meta: {
   @flow(meta)
   secrets: {
     env: { 
-      TWITCH_IRCBOT_KEY: _ @task(os.Getenv)
+      TWITCH_VERMBOT_OAUTH: _ @task(os.Getenv)
     } 
-    key: env.TWITCH_IRCBOT_KEY
+    key: env.TWITCH_VERMBOT_OAUTH
   }
 
   irc: {

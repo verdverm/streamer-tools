@@ -102,13 +102,12 @@ get_token: {
   server: {
     @flow(server,auth/get)
 
-    quit: { name: chanName, buf: 3 } @task(csp.Chan)
+    quit: { mailbox: chanName, buf: 3 } @task(csp.Chan)
 
     run: {
       @task(api.Serve)
       dep: quit.done
       quitMailbox: chanName 
-
       port: "2323"
       logging: true
       routes: {
@@ -155,7 +154,7 @@ get_token: {
           }
 
           // stop server
-          stop_server: { dep: write_token.done, name: chanName, val: true } @task(csp.Send)
+          stop_server: { dep: write_token.done, mailbox: chanName, val: true } @task(csp.Send)
         }
       }
     }
